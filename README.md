@@ -5,131 +5,90 @@
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-CI/CD pipeline for an image/video Business Intelligence dashboard in a computer vision application using Large Language Models (LLMs) and GitHub Actions.
+CI/CD pipeline for an image/video BI dashboard — ML model training, testing, and deployment automation.
 
 ## Overview
 
-This repository implements a complete CI/CD pipeline for deploying computer vision-powered BI dashboards. It automates testing, building, and deploying CV applications with integrated LLM capabilities for intelligent data analysis and visualization.
+Automated ML training pipeline with CI/CD, Docker containerization, and comprehensive testing. Trains a linear regression model on synthetic data, evaluates performance, and packages the model for deployment.
 
-## What's New (2025-2026)
-
-- **GitHub Actions Workflows**: Multi-stage CI/CD with matrix testing across Python 3.10-3.12
-- **Container Registry**: Automated Docker image builds to GitHub Container Registry (ghcr.io)
-- **Infrastructure as Code**: Terraform/Pulumi for reproducible cloud deployments
-- **LLM Integration**: Automated model validation and A/B testing in deployment pipeline
-- **Monitoring**: Prometheus + Grafana dashboards for CV pipeline metrics
-- **Security Scanning**: Trivy container scanning and Snyk dependency checks
-- **Feature Flags**: Gradual rollout for new CV model versions
-
-## Architecture
+## Project Structure
 
 ```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│   Code   │───▶│  Build   │───▶│  Test    │───▶│  Deploy  │
-│  Push    │    │  Stage   │    │  Stage   │    │  Stage   │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-     │              │               │               │
-  GitHub         Docker          Pytest/        Kubernetes
-  Actions       Build           Lint/Test       / ECS
+cv-dashboard-cicd/
+├── main.py           # ML training pipeline (generate data, train, save model)
+├── test_main.py      # Pytest unit/integration/e2e tests
+├── requirements.txt  # Python dependencies
+├── pyproject.toml    # Modern Python project config (ruff, pytest, mypy)
+├── Dockerfile        # Multi-stage Docker build
+├── docker-compose.yml
+├── .github/
+│   └── workflows/
+│       └── ci.yml    # GitHub Actions: lint + matrix test (3.10-3.12)
+├── README.md
+└── LICENSE
 ```
-
-## CI/CD Pipeline
-
-### Stages
-
-1. **Lint & Static Analysis**: Ruff, mypy, bandit security checks
-2. **Unit Tests**: pytest with coverage reporting
-3. **Integration Tests**: Docker-based service tests
-4. **Model Validation**: Inference accuracy benchmarks
-5. **Build**: Multi-arch Docker images (amd64, arm64)
-6. **Deploy**: Blue-green deployment to cloud
-
-### GitHub Actions Workflow
-
-```yaml
-# Key pipeline steps:
-# 1. Code quality checks
-ruff check . && mypy . && bandit -r .
-
-# 2. Unit tests
-pytest tests/ --cov=src --cov-report=xml
-
-# 3. Docker build
-docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
-
-# 4. Deploy
-kubectl apply -f k8s/
-```
-
-## Tech Stack
-
-| Category | Tool | Version |
-|----------|------|---------|
-| **CI/CD** | GitHub Actions | Latest |
-| **Container** | Docker | 24+ |
-| **Orchestration** | Kubernetes / Docker Compose | 1.29+ / 2.x |
-| **Monitoring** | Prometheus + Grafana | Latest |
-| **Security** | Trivy, Snyk | Latest |
-| **Cloud** | AWS ECS/EKS, Azure Container Apps | Latest |
-| **IaC** | Terraform | 1.7+ |
-| **CV Models** | PyTorch, Ultralytics | 2.x, 11.x |
-| **LLM** | Ollama, OpenAI API | Latest |
-
-## Dashboard Components
-
-| Service | Description |
-|---------|-------------|
-| **CV Inference API** | FastAPI endpoint for object detection / segmentation |
-| **BI Dashboard** | Plotly Dash / Streamlit for visualization |
-| **LLM Service** | Ollama-powered data storytelling |
-| **Monitoring** | Grafana dashboards with real-time metrics |
 
 ## Quick Start
 
-```bash
-# Clone and setup
-git clone https://github.com/pirahansiah/cv-dashboard-cicd.git
-cd cv-dashboard-cicd
-
-# Run locally
-docker-compose up --build
-
-# Access dashboard
-open http://localhost:8050
-```
-
-## Pipeline Configuration
+### Local
 
 ```bash
-# Set GitHub secrets:
-# REGISTRY_URL: Container registry URL
-# AWS_ACCESS_KEY_ID: AWS credentials
-# AWS_SECRET_ACCESS_KEY: AWS secret
-# KUBE_CONFIG: Kubernetes cluster config
+pip install -r requirements.txt
+
+# Train model
+python main.py
+
+# Run tests
+pytest test_main.py -v
 ```
 
-## Monitoring & Observability
+### Docker
 
-- **Metrics**: Prometheus scrapes `/metrics` endpoints
-- **Dashboards**: Grafana dashboards for inference latency, throughput, error rates
-- **Alerts**: PagerDuty / Slack integration for pipeline failures
-- **Logging**: ELK stack / Loki for centralized log aggregation
+```bash
+docker compose up --build
+```
 
-## Security
+### CI/CD
 
-- Container images scanned with Trivy on every build
-- Dependency scanning with Snyk
-- Secret detection with gitleaks
-- RBAC for deployment permissions
-- Network policies for service isolation
+The GitHub Actions pipeline runs on push/PR to `main`:
+
+1. **Lint** — ruff check + format verification
+2. **Build & Test** — Matrix testing across Python 3.10, 3.11, 3.12
+3. **Test** — Downloads the trained model and runs pytest
+
+## Testing
+
+Tests are self-contained — the training function is called in fixtures, so no pre-existing model artifact is needed.
+
+```bash
+# Run all tests
+pytest test_main.py -v
+
+# With coverage
+pytest test_main.py -v --cov=main --cov-report=term-missing
+```
+
+## 12-Month Roadmap
+
+| Phase | Timeline | Milestone |
+|-------|----------|-----------|
+| **Phase 1** | Month 1-2 | FastAPI inference endpoint with OpenAPI docs |
+| **Phase 2** | Month 3-4 | Plotly Dash dashboard for model metrics visualization |
+| **Phase 3** | Month 5-6 | Ollama LLM integration for natural language data insights |
+| **Phase 4** | Month 7-8 | Prometheus metrics + Grafana dashboards for monitoring |
+| **Phase 5** | Month 9-10 | Kubernetes manifests, Helm charts for orchestrated deployment |
+| **Phase 6** | Month 11-12 | Terraform IaC, multi-environment deployment (dev/staging/prod) |
 
 ## References
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Docker Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
-- [Kubernetes Deployment Strategies](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
-- [Prometheus Monitoring](https://prometheus.io/docs/)
+- [scikit-learn Documentation](https://scikit-learn.org/)
 
 ## License
 
-MIT License
+MIT License — See [LICENSE](LICENSE) for details.
+
+## Author
+
+**Dr. Farshid Pirahansiah** — [LinkedIn](https://linkedin.com/in/pirahansiah) | [GitHub](https://github.com/pirahansiah)

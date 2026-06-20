@@ -1,0 +1,6 @@
+services:
+  train:
+    build: .
+    volumes:
+      - ./output:/app/output
+    command: ["-o", "/app/output/model.joblib"]
